@@ -106,7 +106,7 @@ UniverseModulesCompiler = class UniverseModulesCompiler extends BabelCompiler {
         const extraWhitelist = [];
 
         // add react for every jsx file
-        if (/\.jsx$/.test(inputFile.getExtension())) {
+        if (/jsx$/.test(inputFile.getExtension())) {
             extraWhitelist.push('react');
         }
 
