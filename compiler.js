@@ -25,6 +25,10 @@ UniverseModulesCompiler = class UniverseModulesCompiler extends BabelCompiler {
         inputFiles.forEach(this.processFile, this);
     }
 
+    getModulesType () {
+        return 'system';
+    }
+
     processFile (inputFile) {
 
         // Full contents of the file as a string
@@ -47,7 +51,7 @@ UniverseModulesCompiler = class UniverseModulesCompiler extends BabelCompiler {
             filename: filePath,
             sourceFileName: '/' + filePath,
             sourceMapName: '/' + filePath + '.map',
-            modules: 'system',
+            modules: this.getModulesType(),
             moduleIds: true,
             moduleId,
             whitelist: this.getTransformers(inputFile)
@@ -74,7 +78,7 @@ UniverseModulesCompiler = class UniverseModulesCompiler extends BabelCompiler {
             result.code += `System.import('${moduleId}');`;
         }
 
-        inputFile.addJavaScript({
+        this.addJSFile(inputFile, {
             sourcePath: filePath,
             path: filePath,
             data: result.code,
@@ -82,6 +86,10 @@ UniverseModulesCompiler = class UniverseModulesCompiler extends BabelCompiler {
             sourceMap: result.map,
             bare: !!fileOptions.bare
         });
+    }
+
+    addJSFile (inputFile, properties) {
+        inputFile.addJavaScript(properties);
     }
 
     getModuleId (inputFile) {
@@ -105,8 +113,8 @@ UniverseModulesCompiler = class UniverseModulesCompiler extends BabelCompiler {
         const fileOptions = inputFile.getFileOptions();
         
         let extraWhitelist = [];
-        
-        if(fileOptions && Array.isArray(fileOptions.babelWhitelist)) {
+
+        if (fileOptions && Array.isArray(fileOptions.babelWhitelist)) {
             extraWhitelist = fileOptions.babelWhitelist;
         }
 
