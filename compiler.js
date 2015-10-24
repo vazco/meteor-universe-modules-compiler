@@ -102,8 +102,13 @@ UniverseModulesCompiler = class UniverseModulesCompiler extends BabelCompiler {
 
     getTransformers (inputFile) {
         const {whitelist} = Babel.getDefaultOptions(this.extraFeatures);
-
-        const extraWhitelist = [];
+        const fileOptions = inputFile.getFileOptions();
+        
+        let extraWhitelist = [];
+        
+        if(fileOptions && Array.isArray(fileOptions.babelWhitelist)) {
+            extraWhitelist = fileOptions.babelWhitelist;
+        }
 
         // add react for every jsx file
         if (/jsx$/.test(inputFile.getExtension())) {
