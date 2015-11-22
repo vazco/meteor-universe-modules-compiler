@@ -1,9 +1,13 @@
-UniverseModulesCompiler = class UniverseModulesCompiler extends BabelCompiler {
+
+UniverseModulesCompiler = class UniverseModulesCompiler extends CachingCompiler {
 
     constructor ({extraFeatures, _autoExecRegex, extraTransformers = []} = {}) {
-
-        // pass options to MDG BabelCompiler
-        super(extraFeatures);
+        super({
+            compilerName: 'UniverseModulesNPMBuilder',
+            defaultCacheSize: 1024 * 1024 * 10
+        });
+        Babel.validateExtraFeatures(extraFeatures);
+        this.extraFeatures = extraFeatures;
 
         // @todo transformers should be easily extensible per app/package config
         // this will be added in future releases
@@ -21,15 +25,32 @@ UniverseModulesCompiler = class UniverseModulesCompiler extends BabelCompiler {
         this._moduleIdPrefix = '/_modules_/';
     }
 
-    processFilesForTarget (inputFiles) {
-        inputFiles.forEach(this.processFile, this);
+    getCacheKey(inputFile) {
+        return inputFile.getSourceHash() + inputFile.getPathInPackage() + JSON.stringify(inputFile.getFileOptions());
     }
+
+    compileResultSize({data, sourceMap}) {
+        return data.length + sourceMap.length;
+    }
+
+    addCompileResult(inputFile, {data, sourceMap}) {
+        const filePath = inputFile.getPathInPackage();
+        const fileOptions = inputFile.getFileOptions();
+        inputFile.addJavaScript({
+            sourcePath: filePath,
+            path: filePath,
+            data: data,
+            sourceMap,
+            bare: !!fileOptions.bare
+        });
+    }
+
 
     getModulesType () {
         return 'system';
     }
 
-    processFile (inputFile) {
+    compileOneFile (inputFile) {
 
         // Full contents of the file as a string
         const source = inputFile.getContentsAsString();
@@ -74,22 +95,13 @@ UniverseModulesCompiler = class UniverseModulesCompiler extends BabelCompiler {
 
         if (this._autoExecRegex && this._autoExecRegex.test(moduleId)) {
             // @todo find better way to auto execute code
-            // strange thing, its getting added twice on the server, bug or build plugin intended behavior?
             result.code += `System.import('${moduleId}');`;
         }
-
-        this.addJSFile(inputFile, {
-            sourcePath: filePath,
-            path: filePath,
+        return {
             data: result.code,
-            hash: result.hash,
-            sourceMap: result.map,
-            bare: !!fileOptions.bare
-        });
-    }
+            sourceMap: result.map
+        }
 
-    addJSFile (inputFile, properties) {
-        inputFile.addJavaScript(properties);
     }
 
     getModuleId (inputFile) {

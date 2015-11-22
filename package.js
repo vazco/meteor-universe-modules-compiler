@@ -1,6 +1,6 @@
 Package.describe({
     name: 'universe:modules-compiler',
-    version: '1.0.2',
+    version: '1.0.3',
     summary: 'Compiler based on babel-compiler with enabled modules',
     git: 'https://github.com/vazco/meteor-universe-modules-compiler',
     documentation: 'README.md'
@@ -11,6 +11,7 @@ Package.onUse(function (api) {
 
     api.use([
         'babel-compiler@5.8.24_1',
+        'caching-compiler@1.0.0',
         'ecmascript',
         'underscore'
     ], 'server');
