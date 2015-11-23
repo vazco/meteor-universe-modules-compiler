@@ -60,23 +60,26 @@ UniverseModulesCompiler = class UniverseModulesCompiler extends CachingCompiler 
 
         // Options from api.addFile
         const fileOptions = inputFile.getFileOptions();
-
         // Get moduleId, this could be extended with custom logic
         const moduleId = this.getModuleId(inputFile);
 
         // Get options from original MDG Babel compilier
         const babelDefaultOptions = Babel.getDefaultOptions(this.extraFeatures);
-
+        let modulesOptions = {
+            modules: this.getModulesType(),
+            moduleIds: true,
+            moduleId
+        };
+        if (fileOptions && fileOptions.noModule){
+            modulesOptions = {};
+        }
         const babelOptions = _({}).extend(babelDefaultOptions, {
             sourceMap: true,
             filename: filePath,
             sourceFileName: '/' + filePath,
             sourceMapName: '/' + filePath + '.map',
-            modules: this.getModulesType(),
-            moduleIds: true,
-            moduleId,
             whitelist: this.getTransformers(inputFile)
-        });
+        }, modulesOptions);
 
         try {
             var result = Babel.compile(source, babelOptions);
@@ -94,8 +97,7 @@ UniverseModulesCompiler = class UniverseModulesCompiler extends CachingCompiler 
         }
 
         if (this._autoExecRegex && this._autoExecRegex.test(moduleId)) {
-            // @todo find better way to auto execute code
-            result.code += `System.import('${moduleId}');`;
+            result.code = result.code.replace(`System.register('${moduleId}',`, `System.autoLoad('${moduleId}',`);
         }
         return {
             data: result.code,
