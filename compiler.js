@@ -3,7 +3,7 @@ UniverseModulesCompiler = class UniverseModulesCompiler extends CachingCompiler 
 
     constructor ({extraFeatures, _autoExecRegex, extraTransformers = []} = {}) {
         super({
-            compilerName: 'UniverseModulesNPMBuilder',
+            compilerName: 'UniverseModulesBuilder',
             defaultCacheSize: 1024 * 1024 * 10
         });
         Babel.validateExtraFeatures(extraFeatures);
@@ -61,7 +61,7 @@ UniverseModulesCompiler = class UniverseModulesCompiler extends CachingCompiler 
         // Options from api.addFile
         const fileOptions = inputFile.getFileOptions();
         // Get moduleId, this could be extended with custom logic
-        const moduleId = this.getModuleId(inputFile);
+        let moduleId = this.getModuleId(inputFile);
 
         // Get options from original MDG Babel compilier
         const babelDefaultOptions = Babel.getDefaultOptions(this.extraFeatures);
@@ -70,9 +70,12 @@ UniverseModulesCompiler = class UniverseModulesCompiler extends CachingCompiler 
             moduleIds: true,
             moduleId
         };
+
         if (fileOptions && fileOptions.noModule){
             modulesOptions = {};
+            moduleId = null;
         }
+
         const babelOptions = _({}).extend(babelDefaultOptions, {
             sourceMap: true,
             filename: filePath,
@@ -95,15 +98,22 @@ UniverseModulesCompiler = class UniverseModulesCompiler extends CachingCompiler 
             }
             throw e;
         }
-
-        if (this._autoExecRegex && this._autoExecRegex.test(moduleId)) {
-            result.code = result.code.replace(`System.register('${moduleId}',`, `System.autoLoad('${moduleId}',`);
-        }
+        result = this.transformOutput(result, moduleId, fileOptions || {});
         return {
             data: result.code,
             sourceMap: result.map
         }
 
+    }
+
+    transformOutput (result, moduleId, fileOptions) {
+        let {code} = result;
+        if (moduleId && ((this._autoExecRegex  && this._autoExecRegex.test(moduleId))
+                     || fileOptions.autoLoad)) {
+            code = code.replace(`System.register('${moduleId}',`, `System.autoLoad('${moduleId}',`);
+            result.code = code.replace(`System.register("${moduleId}",`, `System.autoLoad("${moduleId}",`);
+        }
+        return result;
     }
 
     getModuleId (inputFile) {

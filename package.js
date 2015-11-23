@@ -1,6 +1,6 @@
 Package.describe({
     name: 'universe:modules-compiler',
-    version: '1.0.4',
+    version: '1.0.5',
     summary: 'Compiler based on babel-compiler with enabled modules',
     git: 'https://github.com/vazco/meteor-universe-modules-compiler',
     documentation: 'README.md'
