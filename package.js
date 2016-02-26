@@ -10,7 +10,7 @@ Package.onUse(function (api) {
     api.versionsFrom('1.2.0.2');
 
     api.use([
-        'babel-compiler@5.8.24_1',
+        'babel-compiler@6.4.0-modules.8',
         'caching-compiler@1.0.0',
         'ecmascript',
         'underscore'
