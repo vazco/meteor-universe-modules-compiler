@@ -1,3 +1,5 @@
+## Abandonware
+
 # UniverseModulesCompiler
 
 This package will export `UniverseModulesCompiler` class that could be registered as Meteor build plugin compiler.
